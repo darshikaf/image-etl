@@ -17,6 +17,7 @@ def normalize(x: np.array) -> np.array:
         i[i <= 0] = 0
     return x
 
+
 def sum_x(x) -> np.array:
     i = 0
     res = 0
@@ -24,6 +25,7 @@ def sum_x(x) -> np.array:
         res += x[i]
         i += 1
     return res
+
 
 def np_encoder(object):
     if isinstance(object, np.generic):
@@ -62,4 +64,3 @@ def get_logger(name: str, log_level: int = logging.INFO) -> logging.Logger:
     logging.basicConfig(stream=sys.stdout, level=log_level, format=fmt)
 
     return logger
-

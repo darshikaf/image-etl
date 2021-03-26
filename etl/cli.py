@@ -1,38 +1,39 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-etl
-
-Usage:
-    etl start
-        (--src-path=<source-path>)
-        (--dest-path=<destination-path>)
-    etl -h | --help
-    etl --version
-
-Options:
-    -h --help                           Show this screen.
-    --src-path                          Path to the source directory.
-    --dest-path                         Path to write output.
-    --version                           Shows version.
-Help:
-    Please refer to https://github.com/darshikaf/image-etl for more information.
-"""
-
-from docopt import docopt
+import click
 
 from etl import __version__
 from etl.extract import DataBunch
 
-import sys
-from typing import List, TextIO
+
+@click.group()
+@click.version_option(__version__)
+def cli() -> None:
+    """
+  This is a simple CLI tool for extracting, tranforming and loading image data.
+  Please refer to https://github.com/darshikaf/image-etl/blob/master/README.md for installation and usage instructions.
+
+  ARGS: src dest
+
+  EXAMPLE: etl start <src-path> <dest-path>
+    
+  """
+    pass
 
 
-def main():
-    options = docopt(__doc__, version=__version__)
-    src_path = options.get("--src-path")
-    dest_path = options.get("--dest-path")
-    data_bunch = DataBunch(src_path, dest_path)
-    data_bunch.execute()
+@cli.command(help="Starts ETL process.")
+@click.argument("src", metavar="<src>", type=click.Path(exists=True))
+@click.argument("dest", metavar="<dest>", type=click.Path(exists=False))
+def start(src, dest) -> None:
+    """etl start <src> <dest>"""
+    db = DataBunch(src, dest)
+    db.execute()
 
+
+def main() -> None:
+    cli()
+
+
+#     src_path="/Users/weerakda/workspace/CV/AI_Data_Software_Engineering_Question.zip",
+#     dest_path="/Users/weerakda/workspace/CV/",
