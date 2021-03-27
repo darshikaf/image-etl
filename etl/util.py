@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import logging
 import os
 import sys
@@ -32,9 +33,23 @@ def np_encoder(object):
         return object.item()
 
 
+def write_to_json(result: dict, path: str) -> None:
+    if os.path.isfile(path):
+        raise PathExists(f"{path} already exists.")
+    json_str = json.dumps(result, default=np_encoder)
+    try:
+        with open(path, "w") as fp:
+            fp.write(json_str)
+        get_logger().info(f"Results are written to {path}.")
+    except Exception as e:
+        raise e
+
+
 def unpack_zipfile(src_path: str, dest_path: str) -> str:
     if not os.path.exists(src_path):
         raise InvalidFilePath(f"File {src_path} does not exist.")
+    target_path = os.path.join(dest_path, "raw_data")
+    get_logger().info(f"Starting extracting data from {src_path} to {dest_path}")
     with zipfile.ZipFile(src_path, "r") as zip_ref:
         dirs = list(
             set(
@@ -45,8 +60,8 @@ def unpack_zipfile(src_path: str, dest_path: str) -> str:
                 ]
             )
         )
-        zip_ref.extractall(os.path.join(dest_path, "raw_data"))
-        return os.path.join(dest_path, "raw_data")
+        zip_ref.extractall(target_path)
+        return target_path
 
 
 def create_dir(path: str, dirname: str) -> str:
@@ -57,7 +72,9 @@ def create_dir(path: str, dirname: str) -> str:
     return outdir_path
 
 
-def get_logger(name: str, log_level: int = logging.INFO) -> logging.Logger:
+def get_logger(
+    name: str = __name__, log_level: int = logging.INFO
+) -> logging.Logger:
     # Set up default logging for submodules to use STDOUT
     logger = logging.getLogger(name)
     fmt = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"

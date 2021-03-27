@@ -31,6 +31,9 @@ local-dist:
 	python setup.py sdist bdist_wheel
 	pip install dist/image_etl-*.whl
 
+test-local:
+	pytest -s
+
 release:
 	$(TERM) python setup.py sdist bdist_wheel; twine upload --repository testpypi dist/*
 

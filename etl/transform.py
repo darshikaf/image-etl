@@ -14,6 +14,7 @@ import h5py
 import numpy as np
 import pandas as pd
 
+import etl.constants as constants
 import etl.util as utils
 
 
@@ -55,14 +56,14 @@ class Metadata:
 
 
 class Transform(object):
-    def __init__(self, dest_path):
+    def __init__(self, src_path, dest_path):
+        self.src_path = src_path
         self.dest_path = dest_path
-        self.src_path = os.path.join(dest_path, "unified")
 
     def execute(self):
         jobs = self._get_all_jobs()
         metadata = self._construct_metadata(jobs)
-        df = pd.read_csv(os.path.join(self.src_path, "attribute_manifest.csv"))
+        df = pd.read_csv(os.path.join(self.src_path, constants.ATTRIBUTE_MANIFEST))
         unique_dunits = self._get_dunits_by_cat_loc(jobs, df)
         final_metadata = self.produce_final_dataset(unique_dunits)
         return final_metadata
@@ -71,7 +72,7 @@ class Transform(object):
         jobs = {}
         unified_locations = glob.glob(os.path.join(self.src_path, "**"))
         for i in unified_locations:
-            if not os.path.basename(i) == "attribute_manifest.csv":
+            if not os.path.basename(i) == constants.ATTRIBUTE_MANIFEST:
                 jobs[os.path.basename(i)] = glob.glob(f"{i}/*.h5")
         return jobs
 
@@ -168,11 +169,3 @@ class Transform(object):
             final_metadata[i] = li
         return final_metadata
 
-
-transform = Transform("/Users/weerakda/workspace/CV")
-res = transform.execute()
-print(next(iter(res.items())))
-
-# json_str = json.dumps(res, default=utils.np_encoder)
-# with open('result.json', 'w') as fp:
-#     fp.write(json_str)

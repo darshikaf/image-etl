@@ -4,7 +4,7 @@
 import click
 
 from etl import __version__
-from etl.extract import DataBunch
+from etl.execute import Configuration, Executor
 
 
 @click.group()
@@ -27,13 +27,10 @@ def cli() -> None:
 @click.argument("dest", metavar="<dest>", type=click.Path(exists=False))
 def start(src, dest) -> None:
     """etl start <src> <dest>"""
-    db = DataBunch(src, dest)
-    db.execute()
+    executor = Executor(Configuration(src, dest))
+    executor.execute()
 
 
 def main() -> None:
     cli()
 
-
-#     src_path="/Users/weerakda/workspace/CV/AI_Data_Software_Engineering_Question.zip",
-#     dest_path="/Users/weerakda/workspace/CV/",
