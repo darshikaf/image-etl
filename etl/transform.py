@@ -17,6 +17,8 @@ import pandas as pd
 import etl.constants as constants
 import etl.util as utils
 
+from etl.errors import InvalidInputData
+
 
 @dataclass
 class DataUnit:
@@ -63,7 +65,9 @@ class Transform(object):
     def execute(self):
         jobs = self._get_all_jobs()
         metadata = self._construct_metadata(jobs)
-        df = pd.read_csv(os.path.join(self.src_path, constants.ATTRIBUTE_MANIFEST))
+        df = pd.read_csv(
+            os.path.join(self.src_path, constants.ATTRIBUTE_MANIFEST)
+        )
         unique_dunits = self._get_dunits_by_cat_loc(jobs, df)
         final_metadata = self.produce_final_dataset(unique_dunits)
         return final_metadata
@@ -74,6 +78,8 @@ class Transform(object):
         for i in unified_locations:
             if not os.path.basename(i) == constants.ATTRIBUTE_MANIFEST:
                 jobs[os.path.basename(i)] = glob.glob(f"{i}/*.h5")
+        if not jobs:
+            raise InvalidInputData("Annotation jobs cannot be found.")
         return jobs
 
     def _get_annotation_jobs(self, paths: List[str]) -> Dict:
@@ -104,7 +110,6 @@ class Transform(object):
             categories = self._get_category(u_loc, df)
             dunits = []
             for path in jobs[u_loc]:
-                # dunits = self._create_dunit(dunits, path, categories)
                 with h5py.File(path, "r") as f:
                     u_loc = path.split("/")[-2]
                     job_id = path.split("/")[-1].split("_")[0]
@@ -146,8 +151,8 @@ class Transform(object):
                 loc_specific_metadata = {}
                 du_arr = [i.data for i in val.dunits]
                 shape = (len(du_arr[0]), len(du_arr[0]))
-                normalized_du_arr = utils.normalize(du_arr)
-                concat_arr = utils.normalize(utils.sum_x(normalized_du_arr))
+                filtered_by_cat = utils.normalize(du_arr)
+                concat_arr = utils.normalize(utils.sum_x(filtered_by_cat))
                 object_detected = np.where(concat_arr == 1)
                 if any(map(len, object_detected)):
                     (
@@ -168,4 +173,3 @@ class Transform(object):
                 li.append(loc_specific_metadata)
             final_metadata[i] = li
         return final_metadata
-

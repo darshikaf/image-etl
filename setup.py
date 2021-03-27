@@ -8,7 +8,13 @@ from setuptools.command.test import test as TestCommand
 
 from etl import __version__
 
-requirements = ["click==7.1.2", "h5py>=3.2.1", "numpy>=1.20.1", "pandas>=1.2.3", "typing>=3.6.2"]
+requirements = [
+    "click==7.1.2",
+    "h5py>=3.2.1",
+    "numpy>=1.20.1",
+    "pandas>=1.2.3",
+    "typing>=3.6.2",
+]
 test_requirements = ["coverage", "pytest", "pytest-cov"]
 
 

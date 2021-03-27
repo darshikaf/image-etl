@@ -12,8 +12,9 @@ import etl.util as utils
 from etl.extract import DataBunch
 from etl.transform import Transform
 
+
 @dataclass
-class Configuration():
+class Configuration:
     src_path: str
     dest_path: str
 
@@ -22,8 +23,12 @@ class Executor(object):
     def __init__(self, config: Configuration) -> None:
         self.src_path = config.src_path
         self.dest_path = config.dest_path
-        self.extracted_path = utils.unpack_zipfile(self.src_path, self.dest_path)
-        self.unified_path = utils.create_dir(self.dest_path, constants.UNIFIED_LOCATION)
+        self.extracted_path = utils.unpack_zipfile(
+            self.src_path, self.dest_path
+        )
+        self.unified_path = utils.create_dir(
+            self.dest_path, constants.UNIFIED_LOCATION
+        )
 
     def execute(self):
         db = DataBunch(

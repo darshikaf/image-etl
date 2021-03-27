@@ -15,11 +15,13 @@ def test_invalid_source_path():
         executor = Executor(helpers.invalid_config())
 
     helpers.clean_up()
-    
+
+
 def test_missing_manifest_file():
     with pytest.raises(InvalidInputData):
         helpers.create_databunch_with_missing_manifest().execute()
     helpers.clean_up()
+
 
 def test_only_manifest_in_data():
     with pytest.raises(InvalidInputData):

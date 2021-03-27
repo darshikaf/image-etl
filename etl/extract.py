@@ -16,7 +16,11 @@ import pandas as pd
 import etl.util as utils
 import etl.constants as constants
 
-from etl.errors import InvalidAttributeManifest, InvalidInputData
+from etl.errors import (
+    FileHandlingError,
+    InvalidAttributeManifest,
+    InvalidInputData,
+)
 
 
 class DataBunch(object):
@@ -33,9 +37,8 @@ class DataBunch(object):
                 f"{constants.EXTRACTED_DIR_NAME}/{constants.ATTRIBUTE_MANIFEST}",
             )
         )
-        df.to_csv(
-            os.path.join(self.path_to_move, constants.ATTRIBUTE_MANIFEST)
-        )
+
+        self._write_updated_manifest(df)
         comp_key = df["composite_key"].unique()
 
         utils.get_logger().info("Collating unique data.")
@@ -46,6 +49,19 @@ class DataBunch(object):
             os.path.join(self.extracted_path, constants.UNIQUE_LOCATION_DIR),
             df,
         )
+
+    def _write_updated_manifest(self, df: pd.DataFrame) -> None:
+        try:
+            utils.get_logger().info(
+                f"Writing updated manifest to {self.path_to_move}"
+            )
+            df.to_csv(
+                os.path.join(self.path_to_move, constants.ATTRIBUTE_MANIFEST)
+            )
+        except Exception:
+            raise FileHandlingError(
+                f"Something went wrong when writing dataframe to {self.path_to_move}"
+            )
 
     def _get_attribute_manifest(self, path: str) -> pd.DataFrame:
         if not os.path.isfile(path):
@@ -61,6 +77,7 @@ class DataBunch(object):
         return df
 
     def _create_unique_location(self, comp_key) -> None:
+        """Creates unique directory locId_date"""
         for i in comp_key:
             archivelist = sorted(
                 Path(self.extracted_path).glob(f"**/*{i}.tar.gz")
@@ -84,6 +101,7 @@ class DataBunch(object):
     def _create_unified_location_sources(
         self, input_path: str, df: pd.DataFrame
     ) -> None:
+        """Collects all jobs for a given unique locId_date"""
         file_locs = glob.glob(f"{input_path}/*/")
         if file_locs is None:
             raise InvalidInputData("Image Data not found.")
@@ -96,13 +114,15 @@ class DataBunch(object):
             if not len(files) == 2:
                 continue
             for file in files:
-                if os.path.splitext(file)[1] not in ["jpg", "h5"]:
+                if os.path.splitext(file)[1] not in [".jpg", ".h5"]:
                     continue
                 self._move_files_to_unified_location(file, path)
 
     def _move_files_to_unified_location(self, file: str, path: str) -> None:
         dirname_components = file.split("_")
-        dirname = f"{dirname_components[1]}_{dirname_components[-1].split('.')[0]}"
+        dirname = (
+            f"{dirname_components[1]}_{dirname_components[-1].split('.')[0]}"
+        )
         unified_loc = os.path.join(self.path_to_move, dirname)
         if not os.path.exists(unified_loc):
             Path(unified_loc).mkdir(parents=True, exist_ok=True)

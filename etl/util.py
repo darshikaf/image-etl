@@ -9,6 +9,7 @@ import zipfile
 
 import numpy as np
 
+import etl.constants as constants
 from etl.errors import InvalidFilePath, PathExists
 
 
@@ -16,6 +17,13 @@ def normalize(x: np.array) -> np.array:
     for i in x:
         i[i > 0] = 1
         i[i <= 0] = 0
+    return x
+
+
+def filter_by_value(x: np.array, key: int) -> np.array:
+    for i in x:
+        i[i == key] = 1
+        i[i != key] = 0
     return x
 
 
@@ -48,8 +56,10 @@ def write_to_json(result: dict, path: str) -> None:
 def unpack_zipfile(src_path: str, dest_path: str) -> str:
     if not os.path.exists(src_path):
         raise InvalidFilePath(f"File {src_path} does not exist.")
-    target_path = os.path.join(dest_path, "raw_data")
-    get_logger().info(f"Starting extracting data from {src_path} to {dest_path}")
+    target_path = os.path.join(dest_path, constants.RAW_DATA_LOCATION)
+    get_logger().info(
+        f"Starting extracting data from {src_path} to {dest_path}"
+    )
     with zipfile.ZipFile(src_path, "r") as zip_ref:
         dirs = list(
             set(

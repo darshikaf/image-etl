@@ -33,4 +33,3 @@ def start(src, dest) -> None:
 
 def main() -> None:
     cli()
-
